@@ -1,0 +1,15 @@
+name: Deploy Sentry
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest changes
+        run: cd ~/sentry && git pull origin master
+
+      - name: Deploy
+        run: cd ~/sentry && bash deploy/deploy.sh
