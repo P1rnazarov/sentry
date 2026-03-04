@@ -13,9 +13,12 @@ class TelegramClient(ApiClient):
     def request(self, method, path, data):
         return self._request(path=path, method=method, data=data)
 
-    def send_message(self, chat_id, text, parse_mode="HTML"):
+    def send_message(self, chat_id, text, parse_mode="HTML", message_thread_id=None):
+        data = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
+        if message_thread_id is not None:
+            data["message_thread_id"] = message_thread_id
         return self.request(
             "POST",
             f"/bot{self.bot_token}/sendMessage",
-            data={"chat_id": chat_id, "text": text, "parse_mode": parse_mode},
+            data=data,
         )

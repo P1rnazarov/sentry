@@ -53,6 +53,14 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
                 "default": chat_id or "",
                 "help": "Chat ID or group ID to send notifications to. Use @userinfobot to find your ID.",
             },
+            {
+                "name": "topic_id",
+                "label": "Topic ID (optional)",
+                "type": "text",
+                "required": False,
+                "default": self.get_option("topic_id", project) or "",
+                "help": "Thread/Topic ID for Forum supergroups. Leave empty to send to General.",
+            },
         ]
 
     def get_client(self, project):
@@ -78,7 +86,9 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
 
         client = self.get_client(project)
         chat_id = self.get_option("chat_id", project)
+        topic_id = self.get_option("topic_id", project)
+        message_thread_id = int(topic_id) if topic_id else None
         try:
-            client.send_message(chat_id=chat_id, text=text)
+            client.send_message(chat_id=chat_id, text=text, message_thread_id=message_thread_id)
         except Exception as e:
             self.raise_error(e)
