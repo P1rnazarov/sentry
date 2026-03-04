@@ -4,7 +4,7 @@ set -e
 echo "=== Sentry Deploy Script ==="
 
 # Настройка nginx
-echo "[1/4] Настраиваю nginx..."
+echo "[1/3] Настраиваю nginx..."
 sudo apt install -y -qq nginx
 sudo cp ~/sentry/deploy/nginx/sentry.conf /etc/nginx/sites-available/sentry
 sudo ln -sf /etc/nginx/sites-available/sentry /etc/nginx/sites-enabled/
@@ -12,17 +12,17 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl restart nginx
 echo "Nginx настроен на порту 8091"
 
-# Настройка self-hosted конфигов (не перезаписываем secret-key и другие локальные настройки)
-echo "[2/4] Обновляю конфиги..."
-sudo cp ~/sentry/self-hosted/sentry.conf.py ~/self-hosted/sentry/sentry.conf.py
+# НЕ перезаписываем серверные конфиги (sentry.conf.py, config.yml, .env.custom)
+# Они настроены на сервере вручную и содержат секреты
+echo "[2/3] Конфиги сервера не трогаем (настроены вручную)"
 
-# Пересборка образа (чтобы новый sentry.conf.py попал в контейнер)
-echo "[3/4] Пересобираю образ..."
+# Перезапуск Sentry с двумя env-файлами
+echo "[3/3] Перезапускаю Sentry..."
 cd ~/self-hosted
-sudo docker compose build web
-
-# Перезапуск Sentry
-echo "[4/4] Перезапускаю Sentry..."
-sudo docker compose up -d
+if [ -f .env.custom ]; then
+    sudo docker compose --env-file .env --env-file .env.custom up -d
+else
+    sudo docker compose up -d
+fi
 
 echo "=== Готово! Sentry доступен на http://sentry.gram.tj:8091 ==="
