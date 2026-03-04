@@ -9,7 +9,6 @@
   </p>
 </p>
 
-
 # What's Sentry?
 
 Sentry is the debugging platform that helps every developer detect, trace, and fix issues. Code breaks, fix it faster.
