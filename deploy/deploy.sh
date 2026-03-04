@@ -16,9 +16,10 @@ echo "Nginx настроен на порту 8091"
 # Они настроены на сервере вручную и содержат секреты
 echo "[2/3] Конфиги сервера не трогаем (настроены вручную)"
 
-# Перезапуск Sentry с двумя env-файлами
-echo "[3/3] Перезапускаю Sentry..."
+# Сборка и перезапуск Sentry с двумя env-файлами
+echo "[3/3] Собираю и перезапускаю Sentry..."
 cd ~/self-hosted
+sudo docker compose build web
 if [ -f .env.custom ]; then
     sudo docker compose --env-file .env --env-file .env.custom up -d
 else
