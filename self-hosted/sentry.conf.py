@@ -234,3 +234,47 @@ if "SENTRY_RUNNING_GRANIAN" not in os.environ and len(secret_key) < 32:
 
 SENTRY_OPTIONS["system.secret-key"] = secret_key
 SENTRY_USE_RELAY = True
+
+#########
+# Kafka #
+#########
+
+KAFKA_CLUSTERS["default"] = {
+    "common": {"bootstrap.servers": "kafka:9092"},
+    "producers": {
+        "compression.type": "lz4",
+        "message.max.bytes": 50000000,
+    },
+    "consumers": {},
+}
+
+################
+# Symbolicator #
+################
+
+SENTRY_OPTIONS["symbolicator.options"] = {
+    "url": "http://symbolicator:3021",
+}
+
+################
+# EventStream #
+################
+
+SENTRY_EVENTSTREAM = "sentry.eventstream.kafka.KafkaEventStream"
+SENTRY_EVENTSTREAM_OPTIONS = {
+    "bootstrap.servers": "kafka:9092",
+}
+
+################
+# CSRF / Proxy #
+################
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://sentry.gram.tj",
+    "http://sentry.gram.tj:8091",
+    "https://sentry.gram.tj",
+]
+CSRF_COOKIE_DOMAIN = ".gram.tj"
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
