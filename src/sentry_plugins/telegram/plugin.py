@@ -63,6 +63,9 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
             },
         ]
 
+    def error_message_from_json(self, data):
+        return data.get("description", "unknown error")
+
     def get_client(self, project):
         return TelegramClient(bot_token=self.get_option("bot_token", project))
 
