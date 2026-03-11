@@ -61,6 +61,14 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
                 "default": self.get_option("topic_id", project) or "",
                 "help": "Thread/Topic ID for Forum supergroups. Leave empty to send to General.",
             },
+            {
+                "name": "include_tags",
+                "label": "Include Tags",
+                "type": "bool",
+                "required": False,
+                "default": self.get_option("include_tags", project) or False,
+                "help": "Include event tags in the notification message.",
+            },
         ]
 
     def error_message_from_json(self, data):
@@ -86,6 +94,15 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
         )
         if culprit:
             text += f"Culprit: <code>{culprit}</code>\n"
+
+        if self.get_option("include_tags", project):
+            tags = event.tags
+            if tags:
+                tag_lines = " ".join(
+                    f"<code>{k}={v}</code>" for k, v in tags if k != "level"
+                )
+                if tag_lines:
+                    text += f"Tags: {tag_lines}\n"
 
         client = self.get_client(project)
         chat_id = self.get_option("chat_id", project)
