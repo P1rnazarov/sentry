@@ -62,12 +62,12 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
                 "help": "Thread/Topic ID for Forum supergroups. Leave empty to send to General.",
             },
             {
-                "name": "include_tags",
-                "label": "Include Tags",
-                "type": "bool",
+                "name": "included_tags",
+                "label": "Tags to Include",
+                "type": "text",
                 "required": False,
-                "default": self.get_option("include_tags", project) or False,
-                "help": "Include event tags in the notification message.",
+                "default": self.get_option("included_tags", project) or "",
+                "help": "Comma-separated tag names to include (e.g. environment,os,device). Leave empty to skip tags.",
             },
         ]
 
@@ -95,14 +95,16 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
         if culprit:
             text += f"Culprit: <code>{culprit}</code>\n"
 
-        if self.get_option("include_tags", project):
+        included_tags = self.get_option("included_tags", project)
+        if included_tags:
+            allowed = {t.strip() for t in included_tags.split(",") if t.strip()}
             tags = event.tags
             if tags:
-                tag_lines = " ".join(
-                    f"<code>{k}={v}</code>" for k, v in tags if k != "level"
+                tag_lines = "\n".join(
+                    f"  <code>{k}</code>: {v}" for k, v in tags if k in allowed
                 )
                 if tag_lines:
-                    text += f"Tags: {tag_lines}\n"
+                    text += f"\n{tag_lines}\n"
 
         client = self.get_client(project)
         chat_id = self.get_option("chat_id", project)
