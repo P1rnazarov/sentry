@@ -16,24 +16,31 @@ echo "Nginx настроен на порту 8091"
 # Они настроены на сервере вручную и содержат секреты
 echo "[2/4] Конфиги сервера не трогаем (настроены вручную)"
 
-# Синхронизируем код из ~/sentry в ~/self-hosted для сборки Docker образа
-# (docker compose build использует ~/self-hosted как контекст, а git pull обновляет ~/sentry)
-echo "[3/4] Синхронизирую исходный код..."
-rsync -a \
-    --exclude='.git' \
-    --exclude='.env' \
-    --exclude='.env.custom' \
-    --exclude='docker-compose*.yml' \
-    ~/sentry/ ~/self-hosted/
-
-# Сборка и перезапуск Sentry с двумя env-файлами
-echo "[4/4] Собираю и перезапускаю Sentry..."
+# Сборка и запуск контейнеров
+echo "[3/4] Собираю и запускаю Sentry..."
 cd ~/self-hosted
-sudo docker compose build --no-cache web
+sudo docker compose build web
 if [ -f .env.custom ]; then
     sudo docker compose --env-file .env --env-file .env.custom up -d
 else
     sudo docker compose up -d
 fi
+
+# Копируем кастомные плагины из ~/sentry в контейнеры
+# (образ базируется на ghcr.io/getsentry/sentry, наши плагины нужно добавлять отдельно)
+echo "[4/4] Обновляю кастомные плагины..."
+PLUGIN_SRC=~/sentry/src/sentry_plugins/telegram
+PLUGIN_DST=/usr/src/sentry/src/sentry_plugins/telegram
+
+for service in web worker cron taskworker; do
+    container=$(sudo docker compose ps -q "$service" 2>/dev/null)
+    if [ -n "$container" ]; then
+        sudo docker compose cp "$PLUGIN_SRC/." "$service:$PLUGIN_DST/"
+        echo "  -> $service: плагин скопирован"
+    fi
+done
+
+sudo docker compose restart web taskworker
+echo "  -> web, taskworker перезапущены"
 
 echo "=== Готово! Sentry доступен на http://sentry.gram.tj:8091 ==="
