@@ -29,7 +29,7 @@ rsync -a \
 # Сборка и перезапуск Sentry с двумя env-файлами
 echo "[4/4] Собираю и перезапускаю Sentry..."
 cd ~/self-hosted
-sudo docker compose build web
+sudo docker compose build --no-cache web
 if [ -f .env.custom ]; then
     sudo docker compose --env-file .env --env-file .env.custom up -d
 else
