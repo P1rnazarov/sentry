@@ -123,11 +123,13 @@ class TelegramPlugin(CorePluginMixin, NotificationPlugin):
 
         included_tags = self.get_option("included_tags", project)
         if included_tags:
-            allowed = {t.strip() for t in included_tags.split(",") if t.strip()}
+            allowed = [t.strip() for t in included_tags.split(",") if t.strip()]
             tags = event.tags or []
-            for k, v in tags:
-                if k in allowed:
-                    lines.append(f"<code>{k}</code>: {v}")
+            tags_dict = {k: v for k, v in tags}
+            for tag_name in allowed:
+                value = tags_dict.get(tag_name) or event.get_tag(tag_name) or ""
+                if value:
+                    lines.append(f"<code>{tag_name}</code>: {value}")
 
         return "\n".join(lines)
 
