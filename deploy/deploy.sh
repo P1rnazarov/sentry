@@ -36,7 +36,16 @@ for service in web worker cron taskworker; do
     container=$(sudo docker compose ps -q "$service" 2>/dev/null)
     if [ -n "$container" ]; then
         sudo docker compose cp "$PLUGIN_SRC/." "$service:$PLUGIN_DST/"
-        echo "  -> $service: плагин скопирован"
+
+        # Регистрируем Telegram плагин в setup.cfg (entry point), если ещё не добавлен
+        sudo docker compose exec -T "$service" sh -c '
+            if ! grep -q "telegram = sentry_plugins.telegram.plugin:TelegramPlugin" /usr/src/sentry/setup.cfg; then
+                sed -i "/victorops = sentry_plugins.victorops.plugin:VictorOpsPlugin/a\\    telegram = sentry_plugins.telegram.plugin:TelegramPlugin" /usr/src/sentry/setup.cfg
+                pip install -e /usr/src/sentry --no-deps -q
+            fi
+        '
+
+        echo "  -> $service: плагин скопирован + entry point зарегистрирован"
     fi
 done
 
